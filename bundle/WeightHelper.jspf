@@ -1,0 +1,81 @@
+<%@page import="java.util.regex.Pattern"%>
+<%@page import="java.util.regex.Matcher"%>
+
+<%-- Helpers for searching through the forms of a given kapp by looking for the parsed components of a keyPhrase.
+     Helpers are used to keep the views clean --%>
+<%!
+  public static class WeightHelper {
+  	private HttpServletRequest request;
+
+		public WeightHelper(HttpServletRequest request) {
+			this.request = request;
+		}
+
+    public static int weight(Form source, List<String> terms) {
+      // Checks if every individual term finds a match within a given form
+      int result = 0;
+      for (String term : terms) {
+        result += hasWeight(source, term);
+      }
+      return result;
+    }
+    // modifies the weight based on the associated form component
+    private static int hasWeight(Form form, String term) {
+      int weight = 0;
+      if (termOccurenceNum(form.getName(), term) > 0){
+        weight += (termOccurenceNum(form.getName(), term) * 6);
+      }
+      if (termOccurenceNum(form.getDescription(), term) > 0){
+        weight += (termOccurenceNum(form.getDescription(), term) * 2);
+      }
+      if (attributesWeight(form.getAttributes(), term) > 0){
+        weight += (attributesWeight(form.getAttributes(), term) * 1);
+      }
+      if (categoriesWeight(form.getCategories(), term) > 0){
+        weight += (categoriesWeight(form.getCategories(), term) * 1);
+      }
+      return weight;
+    }
+
+    //unpacks attributes to pass an individual attribute name to the termOccurenceNum function
+    private static int attributesWeight(List<Attribute> attributes, String term) {
+      int result = 0;
+      for (Attribute attribute : attributes) {
+        result += termOccurenceNum(attribute.getValue(), term);
+      }
+      return result;
+    }
+    //unpacks categories to pass an individual catergory name to the termOccurenceNum function
+    private static int categoriesWeight(List<Category> categories, String term) {
+      int result = 0;
+      for (Category category : categories) {
+        result += termOccurenceNum(category.getName(), term);
+      }
+      return result;
+    }
+
+    //calculates the number of times a form occurs in a given source string
+    public static int termOccurenceNum(String source, String term){
+      Pattern termPattern = Pattern.compile(term);
+      Matcher sourceMatcher = termPattern.matcher(source);
+      int count = 0;
+      while (sourceMatcher.find()){
+      	count +=1;
+      }
+      return count;
+    }
+  }
+%>
+
+
+<%--
+
+In your file add <%@include file="WeightHelper.jspf"%>
+to use this helper, call WeightHelper.weight(Form source, List<String> terms)
+Form source: is the form object to be iterated through
+List<String> terms: is the list of terms that is to be incremented through
+
+The weight helper will iterate over the components of the passed in form, check for each term in the List.
+Then the Helper will add a weight modifier pending on which form component contained the term
+
+ --%>

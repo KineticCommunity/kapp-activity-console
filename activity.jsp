@@ -1,0 +1,21 @@
+<%@page pageEncoding="UTF-8" contentType="text/html" trimDirectiveWhitespaces="true"%>
+<%@include file="bundle/initialization.jspf" %>
+
+<script>
+    var bridgeAtrributes = '${form.getAttributeValues("Bridge Name")}';
+</script>
+
+<bundle:layout page="layouts/layout.jsp">
+    <bundle:variable name="head">
+        <title>${text.escape(form.name)}</title>
+    </bundle:variable>
+    <div class='container'>
+        <section class="page">
+            <div class="page-header">
+                <h1>${text.escape(form.name)}</h1>
+            </div>
+            <div class="errors"></div>
+            <app:bodyContent/>
+        </section>
+    </div>
+</bundle:layout>

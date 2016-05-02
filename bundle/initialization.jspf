@@ -1,0 +1,105 @@
+<%-- Load Java libraries, Kinetic models & Identity --%>
+<%@page pageEncoding="UTF-8" trimDirectiveWhitespaces="true"%>
+<%@page import="java.util.*" %>
+<%@page import="com.kineticdata.core.models.*" %>
+<%@page import="com.kineticdata.core.web.bundles.Bundle" %>
+<%@page import="com.kineticdata.core.web.bundles.BundleSubmissionComponent" %>
+<%@page import="com.kineticdata.core.authentication.Identity" %>
+<%@page import="org.slf4j.Logger" %>
+
+<%-- Bundle Java libraries --%>
+<%@page import="com.kineticdata.bundles.*" %>
+
+<%-- Load tag libraries (JSTL) used in most bundles --%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@taglib prefix="app" uri="http://kineticdata.com/taglibs/core/app" %>
+<%@taglib prefix="bundle" uri="http://kineticdata.com/taglibs/bundle" %>
+<%@taglib prefix="json" uri="http://kineticdata.com/taglibs/json" %>
+
+<%@include file="/WEB-INF/app/includes/task4/task4.jspf" %>
+<%@include file="SubmissionHelper.jspf"%>
+<%@include file="SearchHelper.jspf"%>
+<%@include file="SetupHelper.jspf"%>
+<%-- <%@include file="RKMHelper.jspf"%> --%>
+
+<%-- Get bundle, space, and kapp objects --%>
+<%
+    Bundle bundle = (Bundle)request.getAttribute("bundle");
+    Space space = (Space)request.getAttribute("space");
+    Kapp kapp = (Kapp)request.getAttribute("kapp");
+%>
+
+<%-- Define and initialize SetupAttribute helper --%>
+<%
+    SetupHelper setupHelper = new SetupHelper()
+        .addSetupAttribute("Task Server Url",
+            "Task Server Url Description",
+            true)
+        .addSetupAttribute("Task Source Name",
+            "Task Source Name Description",
+            true);
+%>
+
+<%-- Load helper(s) --%>
+<%
+  request.setAttribute("json", new com.kineticdata.bundles.JsonHelper());
+  request.setAttribute("text", new com.kineticdata.bundles.TextHelper());
+  request.setAttribute("time", new com.kineticdata.bundles.TimeHelper());
+  request.setAttribute("SubmissionHelper", new SubmissionHelper(request));
+  request.setAttribute("SearchHelper", new SearchHelper(request));
+  // request.setAttribute("RKMResultType", new RKMResultType(request));
+  request.setAttribute("SetupHelper", setupHelper);
+%>
+
+<%--
+    Create an ARServerUser instance that will be used as an admin proxy user to
+    make calls the current authenticated user may not be able to.  This is
+    necessary because this package requires a direct sql call which requires
+    admin access.  The authentication information for this user is defined via
+    bundle properties but the username and password default to the default
+    helper context of the kinetic request server.
+--%>
+<%-- <%
+    com.bmc.arsys.api.ARServerUser systemUser = new com.bmc.arsys.api.ARServerUser(
+                serverSideBundle.getProperty("rkmAdminUsername"),
+                serverSideBundle.getProperty("rkmAdminPassword"),
+                serverSideBundle.getProperty("rkmLocale"),
+                serverSideBundle.getProperty("rkmServer"));
+        systemUser.setPort(Integer.parseInt(serverSideBundle.getProperty("rkmPort")));
+        systemUser.login();
+%> --%>
+<%--
+    Create an ARServerUser instance that will be used to query the multi search
+    form.  This instance is created by retrieving the username and password from
+    the current context and using the bundle properties that define the rkm
+    server.  This assumes that the user record will be the same on the kinetic
+    request and rkm servers.
+
+    Note that if the context is using impersonate user we will create the new
+    ARServerUser instance using the username and password from the systemContext
+    variable rather than context.  Then we will set impersonated user on using
+    the username from the current context.
+--%>
+<%-- <%
+    com.bmc.arsys.api.ARServerUser serverUser = null;
+    if (context != null) {
+        if (context.isImpersonating()) {
+            serverUser = new com.bmc.arsys.api.ARServerUser(
+                systemContext.getUserName(),
+                systemContext.getPassword(),
+                serverSideBundle.getProperty("rkmLocale"),
+                serverSideBundle.getProperty("rkmServer"));
+            serverUser.setImpersonatedUser(context.getUserName());
+        } else {
+            serverUser = new com.bmc.arsys.api.ARServerUser(
+                context.getUserName(),
+                context.getPassword(),
+                serverSideBundle.getProperty("rkmLocale"),
+                serverSideBundle.getProperty("rkmServer"));
+        }
+        serverUser.setPort(Integer.parseInt(serverSideBundle.getProperty("rkmPort")));
+        serverUser.login();
+    }
+%> --%>

@@ -1,0 +1,135 @@
+<%@page import="com.google.common.collect.ComparisonChain" %>
+<%@page import="java.util.List"%>
+<%@include file="WeightHelper.jspf"%>
+<%-- Helpers for searching through the forms of a given kapp by looking for the parsed components of a keyPhrase.
+     Helpers are used to keep the views clean --%>
+
+<%!
+    public static class SearchHelper {
+        private HttpServletRequest request;
+
+        public SearchHelper(HttpServletRequest request) {
+            this.request = request;
+        }
+
+        public List<WeightedForm> search(int offset, int pageSize, List<Form> forms, String keyPhrase) {
+            // Breaks keyPrase parameter into individual keywords
+            List<String> terms = Arrays.asList(keyPhrase.trim().toLowerCase().split(" "));
+            // creates a TreeSet holding a form object
+            Set<WeightedForm> results = new TreeSet<WeightedForm>();
+            // defines the stop point of the returned sublist
+            int pageEnd = offset + pageSize;
+            //iterates through the kapp forms and processes them individually
+            for (Form form : forms) {
+                if (matchesAllTerms(form, terms)) {
+                    int weight = (int)(Math.random() * 10);
+                    //adds a new WeightedForm object to the results Set
+                    results.add(new WeightedForm(form, WeightHelper.weight(form, terms)));
+                }
+            }
+            // Turns results Set into a list
+            List<WeightedForm> resultsList = new ArrayList<WeightedForm>(results);
+            // Checks if PageEnd is longer than the resultsList, and changes its value to the length of the results list if necessary.
+            if (pageEnd > resultsList.size()){
+                pageEnd = resultsList.size();
+            }
+            // Returns a sublist of WeightedForm objects stored in resultsList
+            return resultsList.subList(offset, pageEnd);
+        }
+
+        private boolean matchesAllTerms(Form form, List<String> terms) {
+            // Checks if every individual term finds a match within a given form
+            boolean result = true;
+            for (String term : terms) {
+                if (!matchesTerm(form, term)) {
+                    result = false;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        private boolean matchesTerm(Form form, String term) {
+            // Checks if the search term is contained within the form
+            return matches(form.getName(), term)
+            || matches(form.getDescription(), term)
+            || anyAttributesMatch(form.getAttributes(), term)
+            || anyCategoriesMatch(form.getCategories(), term);
+        }
+
+        private boolean matches(String source, String term) {
+            return source != null
+                && term != null
+                && source.toLowerCase().contains(term.toLowerCase());
+        }
+
+        private boolean anyAttributesMatch(List<Attribute> attributes, String term) {
+            boolean result = false;
+            for (Attribute attribute : attributes) {
+                if (matches(attribute.getValue(), term)) {
+                    result = true;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        private boolean anyCategoriesMatch(List<Category> categories, String term) {
+            boolean result = false;
+            for (Category category : categories) {
+                if (matches(category.getName(), term)) {
+                    result = true;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        // Builds and WeightedForm objec
+
+        public static class WeightedForm implements Comparable<WeightedForm> {
+            private Form form;
+            private int weight;
+
+            public WeightedForm(Form form, int weight){
+                this.form = form;
+                this.weight = weight;
+            }
+
+            public Form getForm(){
+                return this.form;
+            }
+            public int getWeight(){
+                return this.weight;
+            }
+
+            public int compareTo(WeightedForm that) {
+                // Compare by required first, then by name
+                // Required compare is negated to have true values return first (instead of false which is default)
+                return ComparisonChain.start()
+                .compare(this.weight, that.weight)
+                .result();
+            }
+        }
+    }
+%>
+
+<%-- use the rules --%>
+
+<%--
+The following two lines of code must be added to initialization.jspf
+<%request.setAttribute("SearchHelper", new SearchHelper(request))%>
+<%@include file="SearchHelper.jspf"%>
+
+in your desired jsp file, call the below function, passing in the required parameters:
+
+SearchHelper.search(Index, Results, Forms, Key Phrase).
+
+    Index - starting index within list (int)
+    Results - number of results to be returned per page (int)
+    Forms - list of forms to itterate over (List<Form>)
+    Key Phrase - the key phrase input (String)
+
+The function will return any forms that contain the terms extracted from the passed in key phase.
+search.json.jsp has broken into the values that will be most needed when looking for search results.
+--%>
