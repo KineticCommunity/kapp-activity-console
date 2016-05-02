@@ -1,17 +1,25 @@
 ## Overview
-This bundle is used internally by Kinetic Request CE and is a good starting point to build out your own bundles.
+Activity console.
 
-It includes the default:
+## Activity Form
 
-* Listing of Kapps (kapp.jsp)
-* Form display (form.jsp)
-* Login page (login.jsp)
-* Reset Password (resetPassword.jsp)
+Build a new form and name it.
 
-## Assumptions
-Wherever possible we use defaults to make sure the pages will render correctly regardless of any attributes, categories or other configurations you perform on your forms.
+Create a new page, and set up all bridge resources you intend to use. make sure the parameter is _${values('key')}_
 
-The one exception to this is "My Requests" and "My Approvals".  In order to grab only the appropriate submissions we are looking for form types of _"Service"_ for My Requests and _"Approval"_ for My Approvals.  While the form won't break if you don't include this, it also won't show your requests or your approvals.
+Create a text field with a name and label of _"key"_
+
+Create an HTML Content containing the following code
+
+```html
+    <button class="modify btn btn-sm btn-primary dropdown-toggle" value="Modify" type="button" data-toggle="dropdown" aria-expanded="true" id="dropdownMenu1">
+        Sources
+        <span class="caret"></span>
+    </button>
+    <div class="sourcesSelector dropdown-menu" aria-labelledby="dropdownMenu1"><ul class="sourcelist"></ul></div>
+    <div class="tableBody">
+```
+
 
 ## Personalization
 This bundle easily allows for minor personalization by including optional attributes in your KAPP, Form and/or Categories.

@@ -118,7 +118,7 @@
                                 { "visible": false, "data": "Id", "title": "Id" }
                             ]
                         });
-
+                        //filters results so that only options from selected sources populate the data table.
                         $('input[value]').click(function(){
                             var filteredSources = sourceList;
                             if (this.checked == false){
